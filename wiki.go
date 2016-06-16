@@ -15,12 +15,12 @@ type Page struct {
 }
 
 func (p *Page) save() error {
-	filename := p.Title + ".txt"
+	filename := "data/" + p.Title + ".txt"
 	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
 func loadPage(title string) (*Page, error) {
-	filename := title + ".txt"
+	filename := "data/" + title + ".txt"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -33,12 +33,20 @@ func makeHandler(fn func (http.ResponseWriter, *http.Request, string)) http.Hand
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
+			w.WriteHeader(http.StatusNotFound)
 			http.NotFound(w, r)
 			return
 		}
 		fn(w, r, m[2])
 	}
 }
+
+//func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
+//	w.WriteHeader(status)
+//	if status == http.StatusNotFound {
+//		fmt.Fprint(w, "custom 404")
+//	}
+//}
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
@@ -70,7 +78,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
-	t, err := template.ParseFiles(templateName)
+	t, err := template.ParseFiles("templates/" + templateName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
