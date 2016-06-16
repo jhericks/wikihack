@@ -5,8 +5,7 @@ import (
 	"net/http"
 	"regexp"
 	"fmt"
-	"strings"
-	"github.com/hoisie/mustache"
+	"github.com/aymerick/raymond"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
@@ -61,22 +60,6 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 //		fmt.Fprint(w, "custom 404")
 //	}
 //}
-func defaultHandler(w http.ResponseWriter, r *http.Request) {
-	filename := strings.TrimPrefix(r.URL.Path, "/")
-	fmt.Println("Read " + filename)
-	body, err := ioutil.ReadFile(filename)
-	if err != nil {
-		fmt.Println(err.Error())
-		fmt.Println("Write status not found header in defaultHandler")
-		w.WriteHeader(http.StatusNotFound)
-		http.NotFound(w, r)
-	} else {
-		w.Header().Add("Content-Type", http.DetectContentType(body))
-		fmt.Println(string(body))
-		fmt.Fprint(w, string(body))
-	}
-
-}
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	title := "FrontPage"
@@ -113,7 +96,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
-	output := mustache.RenderFile("templates/" + templateName, &p)
+	template, _ := raymond.ParseFile("templates/" + templateName)
+	output, _ := template.Exec(&p)
 	fmt.Fprint(w, output)
 }
 
