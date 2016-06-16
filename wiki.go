@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"fmt"
+	"strings"
+	"os"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
@@ -12,6 +15,26 @@ var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 type Page struct {
 	Title string
 	Body  []byte
+}
+
+type justFilesFilesystem struct {
+	fs http.FileSystem
+}
+
+func (fs justFilesFilesystem) Open(name string) (http.File, error) {
+	f, err := fs.fs.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	return neuteredReaddirFile{f}, nil
+}
+
+type neuteredReaddirFile struct {
+	http.File
+}
+
+func (f neuteredReaddirFile) Readdir(count int) ([]os.FileInfo, error) {
+	return nil, nil
 }
 
 func (p *Page) save() error {
@@ -35,18 +58,17 @@ func loadUserPage(title string) (*Page, error) {
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" || r.URL.Path == "" {
-			fn(w, r, "")
-		} else {
-			m := validPath.FindStringSubmatch(r.URL.Path)
-			if m == nil {
-				w.WriteHeader(http.StatusNotFound)
-				http.NotFound(w, r)
-				return
-			}
-			fn(w, r, m[2])
+		fmt.Println("makeHandler handling " + r.URL.Path)
+		m := validPath.FindStringSubmatch(r.URL.Path)
+		if m == nil {
+			fmt.Println("Write status not found header in makeHandler")
+			w.WriteHeader(http.StatusNotFound)
+			http.NotFound(w, r)
+			return
 		}
+		fn(w, r, m[2])
 	}
+
 }
 
 
@@ -56,8 +78,25 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 //		fmt.Fprint(w, "custom 404")
 //	}
 //}
-func rootHandler(w http.ResponseWriter, r *http.Request, title string) {
-	title = "FrontPage"
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	filename := strings.TrimPrefix(r.URL.Path, "/")
+	fmt.Println("Read " + filename)
+	body, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("Write status not found header in defaultHandler")
+		w.WriteHeader(http.StatusNotFound)
+		http.NotFound(w, r)
+	} else {
+		w.Header().Add("Content-Type", http.DetectContentType(body))
+		fmt.Println(string(body))
+		fmt.Fprint(w, string(body))
+	}
+
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	title := "FrontPage"
 	http.Redirect(w, r, "/view/" + title, http.StatusFound)
 }
 
@@ -103,9 +142,11 @@ func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
 }
 
 func main() {
+	//fs := justFilesFilesystem{http.Dir("resources/")}
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./public"))))
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
-	http.HandleFunc("/", makeHandler(rootHandler))
+	http.HandleFunc("/", rootHandler)
 	http.ListenAndServe(":8080", nil)
 }
