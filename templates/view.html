@@ -20,9 +20,12 @@
 <body class="container">
 <h1>{{Title}}</h1>
 
-<p>[<a href="/edit/{{Title}}">edit</a>]</p>
-
-<div>{{BodyStr}}</div>
+<div class="panel panel-default">
+    <div class="panel-body">
+        {{{BodyHtml}}}
+    </div>
+</div>
+<a href="/edit/{{Title}}" class="btn btn-default" role="button">edit</a>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->

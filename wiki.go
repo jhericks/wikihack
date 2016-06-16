@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"fmt"
 	"github.com/aymerick/raymond"
+	"github.com/russross/blackfriday"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
@@ -17,6 +18,10 @@ type Page struct {
 
 func (p *Page) BodyStr() string {
 	return string(p.Body)
+}
+
+func (p *Page) BodyHtml() string {
+	return string(blackfriday.MarkdownCommon(p.Body))
 }
 
 func (p *Page) save() error {
@@ -53,13 +58,6 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 
 }
 
-
-//func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
-//	w.WriteHeader(status)
-//	if status == http.StatusNotFound {
-//		fmt.Fprint(w, "custom 404")
-//	}
-//}
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	title := "FrontPage"
