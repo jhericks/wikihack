@@ -11,7 +11,7 @@ var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
 type Page struct {
 	Title string
-	Body []byte
+	Body  []byte
 }
 
 func (p *Page) save() error {
@@ -19,8 +19,7 @@ func (p *Page) save() error {
 	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
-func loadPage(title string) (*Page, error) {
-	filename := "data/" + title + ".txt"
+func loadPage(title string, filename string) (*Page, error) {
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -29,17 +28,27 @@ func loadPage(title string) (*Page, error) {
 	}
 }
 
-func makeHandler(fn func (http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+func loadUserPage(title string) (*Page, error) {
+	filename := "data/" + title + ".txt"
+	return loadPage(title, filename)
+}
+
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		m := validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil {
-			w.WriteHeader(http.StatusNotFound)
-			http.NotFound(w, r)
-			return
+		if r.URL.Path == "/" || r.URL.Path == "" {
+			fn(w, r, "")
+		} else {
+			m := validPath.FindStringSubmatch(r.URL.Path)
+			if m == nil {
+				w.WriteHeader(http.StatusNotFound)
+				http.NotFound(w, r)
+				return
+			}
+			fn(w, r, m[2])
 		}
-		fn(w, r, m[2])
 	}
 }
+
 
 //func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
 //	w.WriteHeader(status)
@@ -47,9 +56,13 @@ func makeHandler(fn func (http.ResponseWriter, *http.Request, string)) http.Hand
 //		fmt.Fprint(w, "custom 404")
 //	}
 //}
+func rootHandler(w http.ResponseWriter, r *http.Request, title string) {
+	title = "FrontPage"
+	http.Redirect(w, r, "/view/" + title, http.StatusFound)
+}
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p, err := loadPage(title)
+	p, err := loadUserPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/" + title, http.StatusFound)
 		return
@@ -59,7 +72,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p, err := loadPage(title)
+	p, err := loadUserPage(title)
 	if err != nil {
 		p = &Page{Title: title}
 	}
@@ -93,5 +106,6 @@ func main() {
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/", makeHandler(rootHandler))
 	http.ListenAndServe(":8080", nil)
 }
