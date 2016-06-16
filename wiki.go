@@ -95,6 +95,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 
 func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
 	template, _ := raymond.ParseFile("templates/" + templateName)
+	template.RegisterPartialFile("templates/layout_top.mustache", "layout_top")
+	template.RegisterPartialFile("templates/layout_bottom.mustache", "layout_bottom")
 	output, _ := template.Exec(&p)
 	fmt.Fprint(w, output)
 }
