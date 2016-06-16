@@ -1,13 +1,12 @@
 package main
 
 import (
-	"html/template"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"fmt"
 	"strings"
-	"os"
+	"github.com/hoisie/mustache"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
@@ -17,24 +16,8 @@ type Page struct {
 	Body  []byte
 }
 
-type justFilesFilesystem struct {
-	fs http.FileSystem
-}
-
-func (fs justFilesFilesystem) Open(name string) (http.File, error) {
-	f, err := fs.fs.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	return neuteredReaddirFile{f}, nil
-}
-
-type neuteredReaddirFile struct {
-	http.File
-}
-
-func (f neuteredReaddirFile) Readdir(count int) ([]os.FileInfo, error) {
-	return nil, nil
+func (p *Page) BodyStr() string {
+	return string(p.Body)
 }
 
 func (p *Page) save() error {
@@ -130,15 +113,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
-	t, err := template.ParseFiles("templates/" + templateName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = t.Execute(w, p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	output := mustache.RenderFile("templates/" + templateName, &p)
+	fmt.Fprint(w, output)
 }
 
 func main() {

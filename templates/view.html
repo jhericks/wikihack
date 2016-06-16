@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>{{.Title}}</title>
+    <title>{{Title}}</title>
 
     <!-- Bootstrap -->
     <link href="/static/css/bootstrap.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <![endif]-->
 </head>
 <body class="container">
-<h1>{{.Title}}</h1>
+<h1>{{Title}}</h1>
 
-<p>[<a href="/edit/{{.Title}}">edit</a>]</p>
+<p>[<a href="/edit/{{Title}}">edit</a>]</p>
 
-<div>{{printf "%s" .Body}}</div>
+<div>{{BodyStr}}</div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
