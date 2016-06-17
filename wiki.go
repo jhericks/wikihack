@@ -94,6 +94,7 @@ func makeUntitledHandler(fn func(http.ResponseWriter, *http.Request, *Account)) 
 		fn(w, r, account)
 	}
 }
+
 func makeTitledHandler(fn func(http.ResponseWriter, *http.Request, *Account, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("makeHandler handling " + r.URL.Path)
