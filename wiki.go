@@ -33,7 +33,7 @@ func (p *Page) save() error {
 }
 
 func (p *Page) IsFrontPage() bool {
-	isFrontPage := (strings.Compare(p.Title, "FrontPage") == 0)
+	isFrontPage := p.Title == "FrontPage"
 	return isFrontPage
 }
 
