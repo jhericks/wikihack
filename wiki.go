@@ -8,9 +8,11 @@ import (
 	"github.com/aymerick/raymond"
 	"github.com/russross/blackfriday"
 	"strings"
+	"os"
+	"log"
 )
 
-var validPath = regexp.MustCompile("^/(edit|save|view|admin)/([a-zA-Z0-9_]*)$")
+var validPath = regexp.MustCompile("^/(view|edit|save|delete|admin)/([a-zA-Z0-9_]*)$")
 
 type Page struct {
 	Title string
@@ -30,13 +32,18 @@ func (p *Page) save() error {
 	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
-func (p *Page) OtherPages() []string {
+func (p *Page) IsFrontPage() bool {
+	isFrontPage := (strings.Compare(p.Title, "FrontPage") == 0)
+	return isFrontPage
+}
+
+func (p *Page) OtherPages() []*Page {
 	fileInfoList, _ := ioutil.ReadDir("./data")
-	fileList := []string{}
-	for _,fileInfo := range fileInfoList {
-		fileList = append(fileList, strings.TrimSuffix(fileInfo.Name(), ".txt"))
+	pageList := []*Page{}
+	for _, fileInfo := range fileInfoList {
+		pageList = append(pageList, &Page{Title: strings.TrimSuffix(fileInfo.Name(), ".txt")})
 	}
-	return fileList
+	return pageList
 }
 
 func loadPage(title string, filename string) (*Page, error) {
@@ -67,7 +74,6 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 	}
 
 }
-
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	title := "FrontPage"
@@ -115,6 +121,17 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	http.Redirect(w, r, "/view/" + title, http.StatusFound)
 }
 
+func deleteHandler(w http.ResponseWriter, r *http.Request, title string) {
+	if title == "FrontPage" {
+		http.Error(w, "You cannot delete the front page", http.StatusBadRequest)
+	}
+	err := os.Remove("./data/" + title + ".txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
 	template, _ := raymond.ParseFile("templates/" + templateName)
 	template.RegisterPartialFile("templates/layout_top.mustache", "layout_top")
@@ -127,10 +144,11 @@ func main() {
 	//fs := justFilesFilesystem{http.Dir("resources/")}
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./public"))))
 	http.HandleFunc("/admin", adminHandler)
-	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/create/", createHandler)
+	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/delete/", makeHandler(deleteHandler))
 	http.HandleFunc("/", rootHandler)
 	http.ListenAndServe(":8080", nil)
 }

@@ -22,10 +22,15 @@
     <div class="panel-heading">Most Edited Pages</div>
     <div class="panel-body">
         <div class="list-group">
-            {{#each OtherPages}}
-            <a href="/view/{{this}}" class="list-group-item">
-                {{this}}
+            {{#each OtherPages as |Page PageIndex|}}
+            <div class="list-group-item">
+            <a href="/view/{{Page.Title}}">
+                {{Page.Title}}
             </a>
+                {{#unless Page.IsFrontPage}}
+            <div class="pull-right"><a href="/delete/{{Page.Title}}" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-trash"></span></a></div>
+                {{/unless}}
+            </div>
             {{/each}}
         </div>
     </div>
