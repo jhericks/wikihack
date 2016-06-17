@@ -195,5 +195,5 @@ func main() {
 	http.HandleFunc("/save/", makeTitledHandler(saveHandler))
 	http.HandleFunc("/delete/", makeTitledHandler(deleteHandler))
 	http.HandleFunc("/", rootHandler)
-	http.ListenAndServe(":" + port, nil)
+	http.ListenAndServe("0.0.0.0:" + port, nil)
 }
