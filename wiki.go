@@ -141,6 +141,11 @@ func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
 }
 
 func main() {
+	port := "8080"
+	args := os.Args[1:]
+	if len(args) > 0 {
+		port = args[0]
+	}
 	//fs := justFilesFilesystem{http.Dir("resources/")}
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./public"))))
 	http.HandleFunc("/admin", adminHandler)
@@ -150,5 +155,5 @@ func main() {
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 	http.HandleFunc("/delete/", makeHandler(deleteHandler))
 	http.HandleFunc("/", rootHandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe("0.0.0.0:" + port, nil)
 }
