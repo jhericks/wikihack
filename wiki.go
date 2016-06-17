@@ -9,7 +9,7 @@ import (
 	"github.com/russross/blackfriday"
 )
 
-var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+var validPath = regexp.MustCompile("^/(edit|save|view|admin)/([a-zA-Z0-9]+)$")
 
 type Page struct {
 	Title string
@@ -74,6 +74,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	renderTemplate(w, "view.html", p)
 }
 
+func adminHandler(w http.ResponseWriter, r *http.Request) {
+	title := "Admin"
+	renderTemplate(w, "admin.html", &Page{Title: title})
+}
+
 func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadUserPage(title)
 	if err != nil {
@@ -104,6 +109,7 @@ func renderTemplate(w http.ResponseWriter, templateName string, p *Page) {
 func main() {
 	//fs := justFilesFilesystem{http.Dir("resources/")}
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./public"))))
+	http.HandleFunc("/admin", adminHandler)
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
