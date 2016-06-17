@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/aymerick/raymond"
 	"github.com/russross/blackfriday"
+	"strings"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view|admin)/([a-zA-Z0-9]+)$")
@@ -27,6 +28,15 @@ func (p *Page) BodyHtml() string {
 func (p *Page) save() error {
 	filename := "data/" + p.Title + ".txt"
 	return ioutil.WriteFile(filename, p.Body, 0600)
+}
+
+func (p *Page) OtherPages() []string {
+	fileInfoList, _ := ioutil.ReadDir("./data")
+	fileList := []string{}
+	for _,fileInfo := range fileInfoList {
+		fileList = append(fileList, strings.TrimSuffix(fileInfo.Name(), ".txt"))
+	}
+	return fileList
 }
 
 func loadPage(title string, filename string) (*Page, error) {
