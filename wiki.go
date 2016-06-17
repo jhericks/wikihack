@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var validPath = regexp.MustCompile("^/(edit|save|view|admin)/([a-zA-Z0-9]+)$")
+var validPath = regexp.MustCompile("^/(edit|save|view|admin)/([a-zA-Z0-9_]*)$")
 
 type Page struct {
 	Title string
@@ -97,7 +97,14 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 	renderTemplate(w, "edit.html", p)
 }
 
+func createHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "create.html", &Page{Title: "Create New Page"})
+}
+
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+	if len(title) == 0 {
+		title = r.FormValue("title")
+	}
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
 	err := p.save()
@@ -121,6 +128,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./public"))))
 	http.HandleFunc("/admin", adminHandler)
 	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/create/", createHandler)
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 	http.HandleFunc("/", rootHandler)

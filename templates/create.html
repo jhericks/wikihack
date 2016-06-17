@@ -1,0 +1,15 @@
+{{> layout_top}}
+<h3>Create a New Page</h3>
+
+<form action="/save/" method="POST">
+    <div class="form-group">
+        <label for="title-input">Title</label>
+        <input class="form-control" id="title-input" name="title" pattern="[a-zA-Z0-9_]+" placeholder="Only letters, numbers, and _"/>
+    </div>
+    <div class="form-group">
+        <label for="body-text-area">Edit your markdown:</label>
+        <textarea class="form-control" id="body-text-area" name="body" rows="20">{{BodyStr}}</textarea>
+    </div>
+    <input type="submit" value="Save" class="btn btn-default">
+</form>
+{{> layout_bottom}}
