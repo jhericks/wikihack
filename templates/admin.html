@@ -22,24 +22,11 @@
     <div class="panel-heading">Most Edited Pages</div>
     <div class="panel-body">
         <div class="list-group">
-            <a href="/view/GOTRvsLOTR" class="list-group-item">
-                GOTvsLOTR <span class="badge">10934</span>
+            {{#each OtherPages}}
+            <a href="/view/{{this}}" class="list-group-item">
+                {{this}}
             </a>
-            <a href="/view/EmacsVsVim" class="list-group-item">
-                EmacsVsVim <span class="badge">9473</span>
-            </a>
-            <a href="/view/TabsVsSpaces" class="list-group-item">
-                TabsVsSpaces <span class="badge">1234</span>
-            </a>
-            <a href="/view/JetBrainsVsEclipse" class="list-group-item">
-                JetBrainsVsEclipse <span class="badge">343</span>
-            </a>
-            <a href="/view/JetBrainsVsVim" class="list-group-item">
-                JetBrainsVsVim <span class="badge">123</span>
-            </a>
-            <a href="/view/SWAGisAwesome" class="list-group-item">
-                SWAGisAwesome <span class="badge">56</span>
-            </a>
+            {{/each}}
         </div>
     </div>
 </div>
